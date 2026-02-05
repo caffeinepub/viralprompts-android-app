@@ -1,0 +1,99 @@
+{
+  "kind": "build_request",
+  "title": "Add dark/light theme toggle + settings options, improve color theme, and fix prompts not loading",
+  "priority": "high",
+  "requirements": [
+    {
+      "id": "REQ-10",
+      "text": "Fix the issue where prompts are not loading by improving fetch robustness and adding actionable error recovery in the UI (without changing the https://viralprompts.in/data.json schema or assuming new fields).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "prompts load nhi hue fix it too"
+        ]
+      },
+      "acceptanceCriteria": [
+        "When https://viralprompts.in/data.json is reachable, the Prompts list reliably populates without requiring a hard reload.",
+        "If fetch fails, the app shows an error state that includes a clear Retry action and an option to clear the local cache and retry.",
+        "If cached data exists and live fetch fails, the app continues to render cached prompts and clearly indicates it is showing cached data.",
+        "Fetch failures are logged with enough detail to diagnose (HTTP status when available, invalid JSON/shape errors, network errors), without exposing sensitive data.",
+        "No backend/canister changes are required for prompts to load."
+      ]
+    },
+    {
+      "id": "REQ-11",
+      "text": "Add a dark/light theme toggle button in the app UI (similar to common website theme toggles) and persist the user’s choice locally so it survives refresh/reopen.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "ek button lagao dark and light theme ka"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A visible theme toggle control is available from the main UI (e.g., in the header).",
+        "Toggling updates the UI immediately by switching Tailwind/Shadcn darkMode class behavior (class-based dark mode).",
+        "The chosen theme is saved to localStorage and restored on next app load.",
+        "User-facing labels/tooltips (if any) are in English (e.g., “Light”, “Dark”, “System”)."
+      ]
+    },
+    {
+      "id": "REQ-12",
+      "text": "Add a simple Options/Settings area that includes a few user-configurable preferences (in addition to theme), implemented purely on the frontend with local persistence.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "like tohda options add karo"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A Settings/Options entry point is accessible from the main UI (e.g., header button opening a dialog/sheet).",
+        "Settings include at least: Theme (Light/Dark/System) and 2+ additional simple UI preferences (e.g., compact grid spacing, show/hide images in list, default sort order such as “Newest” vs “Most copied”).",
+        "All settings changes apply immediately and persist via localStorage.",
+        "All user-facing settings text is in English and policy-safe."
+      ]
+    },
+    {
+      "id": "REQ-13",
+      "text": "Update and refine the app color styling so it remains similar to the current website-like warm palette but looks more polished and consistent across components in both light and dark mode.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "colour agar isse similar and isse aur badiya ho jaye esa ho aye"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The UI maintains a cohesive warm theme (no blue/purple as dominant colors) with consistent use of primary/accent colors across Header, buttons, cards, badges, and dialogs.",
+        "Light and dark themes both have readable contrast for text, borders, and muted elements.",
+        "No changes are made that break existing layout/navigation (list screen and detail screen still function as before)."
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not modify the JSON schema or assume additional fields beyond what https://viralprompts.in/data.json provides.",
+    "Do not create or expose crawlable duplicate SEO pages; canonical prompt pages must remain https://viralprompts.in/{urlTitle}.",
+    "Do not edit files under frontend/src/components/ui (compose them only).",
+    "Do not edit immutable frontend paths listed in SYSTEM_CONTEXT (e.g., frontend/src/main.tsx, frontend/src/hooks/useActor.ts, frontend/src/hooks/useInternetIdentity.ts).",
+    "Backend must remain single-actor Motoko; no backend work is required for this request."
+  ],
+  "nonGoals": [
+    "Implementing third-party authentication providers (only Internet Identity is allowed, and it is not part of this request).",
+    "Adding any external database or server-side storage for settings/preferences.",
+    "Changing the source endpoint away from https://viralprompts.in/data.json."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}

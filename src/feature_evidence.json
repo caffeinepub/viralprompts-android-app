@@ -1,0 +1,91 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-fix-the-issue-where-prompts-are-not-loading-by-improving-fetch-robustness-and-adding-actionable-error-recovery-in-the-ui-without-changing-the-https-viralprompts-in-data-json-schema-or-assuming-new-fields",
+      "featureTitle": "Fix the issue where prompts are not loading by improving fetch robustness and adding actionable error recovery in the UI (without changing the https://viralprompts.in/data.json schema or assuming new fields).",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/PromptList.tsx",
+        "frontend/src/hooks/useViralPrompts.ts",
+        "frontend/src/services/viralPromptsCache.ts",
+        "frontend/src/services/viralPromptsClient.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-10"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-dark-light-theme-toggle-button-in-the-app-ui-similar-to-common-website-theme-toggles-and-persist-the-user-s-choice-locally-so-it-survives-refresh-reopen",
+      "featureTitle": "Add a dark/light theme toggle button in the app UI (similar to common website theme toggles) and persist the user’s choice locally so it survives refresh/reopen.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/Header.tsx",
+        "frontend/src/components/ThemeToggle.tsx",
+        "frontend/src/hooks/useTheme.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-11"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-simple-options-settings-area-that-includes-a-few-user-configurable-preferences-in-addition-to-theme-implemented-purely-on-the-frontend-with-local-persistence",
+      "featureTitle": "Add a simple Options/Settings area that includes a few user-configurable preferences (in addition to theme), implemented purely on the frontend with local persistence.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/Header.tsx",
+        "frontend/src/components/PromptList.tsx",
+        "frontend/src/components/SettingsDialog.tsx",
+        "frontend/src/hooks/useUserSettings.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-12"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-and-refine-the-app-color-styling-so-it-remains-similar-to-the-current-website-like-warm-palette-but-looks-more-polished-and-consistent-across-components-in-both-light-and-dark-mode",
+      "featureTitle": "Update and refine the app color styling so it remains similar to the current website-like warm palette but looks more polished and consistent across components in both light and dark mode.",
+      "files": [
+        "frontend/src/components/Header.tsx",
+        "frontend/src/components/PromptDetail.tsx",
+        "frontend/src/components/PromptList.tsx",
+        "frontend/src/index.css"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-13"
+      ],
+      "confidence": "high"
+    }
+  ]
+}
