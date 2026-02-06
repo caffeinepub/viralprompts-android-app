@@ -3,18 +3,22 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ArrowLeft, Copy, ExternalLink, Check } from 'lucide-react';
+import { ArrowLeft, Copy, ExternalLink, Check, Heart, Share2 } from 'lucide-react';
 import { useState } from 'react';
 import type { ViralPrompt } from '../types/viralPrompts';
 import { constructImageUrl, constructCanonicalUrl, parseHowToUseSteps } from '../utils/viralPrompts';
 import { copyToClipboard } from '../utils/clipboard';
+import { sharePrompt } from '../utils/sharePrompt';
+import { toast } from 'sonner';
 
 interface PromptDetailProps {
   prompt: ViralPrompt;
   onBack: () => void;
+  isLiked: boolean;
+  onToggleLike: () => void;
 }
 
-export function PromptDetail({ prompt, onBack }: PromptDetailProps) {
+export function PromptDetail({ prompt, onBack, isLiked, onToggleLike }: PromptDetailProps) {
   const [copied, setCopied] = useState(false);
   const steps = parseHowToUseSteps(prompt.howToUse);
   const canonicalUrl = constructCanonicalUrl(prompt.urlTitle);
@@ -29,6 +33,13 @@ export function PromptDetail({ prompt, onBack }: PromptDetailProps) {
 
   const handleOpenFullPage = () => {
     window.open(canonicalUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleShare = async () => {
+    const result = await sharePrompt(prompt.urlTitle, prompt.title);
+    if (result.success && result.usedClipboard) {
+      toast.success('Link copied to clipboard!');
+    }
   };
 
   return (
@@ -58,13 +69,33 @@ export function PromptDetail({ prompt, onBack }: PromptDetailProps) {
 
         <CardHeader>
           <div className="space-y-4">
-            <div>
-              <CardTitle className="text-3xl">{prompt.title}</CardTitle>
-              {prompt.description && (
-                <CardDescription className="mt-2 text-base">
-                  {prompt.description}
-                </CardDescription>
-              )}
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <CardTitle className="text-3xl">{prompt.title}</CardTitle>
+                {prompt.description && (
+                  <CardDescription className="mt-2 text-base">
+                    {prompt.description}
+                  </CardDescription>
+                )}
+              </div>
+              <div className="flex shrink-0 gap-2">
+                <Button
+                  variant={isLiked ? 'default' : 'outline'}
+                  size="icon"
+                  onClick={onToggleLike}
+                  aria-label={isLiked ? 'Unlike' : 'Like'}
+                >
+                  <Heart className={`h-5 w-5 ${isLiked ? 'fill-current' : ''}`} />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleShare}
+                  aria-label="Share"
+                >
+                  <Share2 className="h-5 w-5" />
+                </Button>
+              </div>
             </div>
 
             {/* Categories */}

@@ -1,177 +1,24 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 5,
-  "summary": "Build a future-proof, Play Store–compliant hybrid Android app for viralprompts.in that uses https://viralprompts.in/data.json as the single source of truth, provides native list/detail UI with offline caching and manual refresh, and opens full prompt pages via WebView without harming SEO or duplicating website content.",
+  "projectStateVersion": 3,
+  "summary": "New project",
   "architectural_notes": [
-    "Kotlin + Android Studio; minimum SDK 21+.",
-    "Hybrid approach: native list/detail screens; WebView only for full pages at https://viralprompts.in/{urlTitle}.",
-    "Single source of truth is public JSON at https://viralprompts.in/data.json; JSON structure must not change; any transformation is app-side.",
-    "Construct image URLs using base https://viralprompts.in/ + image path from JSON.",
-    "No Firebase required.",
-    "Support runtime theme switching (dark/light) via an in-app toggle; ensure colors remain consistent with website-inspired palette."
+    "Use relative path for prompt data source: set DATA_URL to '/data.json' instead of hardcoded 'https://viralprompts.in/data.json'."
   ],
-  "known_issues": [
-    "Prompts are not loading for the user (data fetch/parsing/caching issue suspected); needs investigation and fix."
-  ],
+  "known_issues": [],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-fetch-live-prompt-data-from-the-public-json-endpoint-https-viralprompts-in-data-json-via-https-and-support-the-json-structure-exactly-as-provided-no-schema-changes-or-assumptions-about-additional-fields",
-      "title": "Fetch live prompt data from the public JSON endpoint https://viralprompts.in/data.json via HTTPS and support the JSON structure exactly as provided (no schema changes or assumptions about additional fields).",
+      "id": "feature-update-the-frontend-data-source-constant-so-the-app-uses-the-local-path-for-the-prompts-json-change-const-data-url-https-viralprompts-in-data-json-to-const-data-url-data-json-in-frontend-src-services-viralpromptsclient-ts",
+      "title": "Update the frontend data source constant so the app uses the local path for the prompts JSON: change `const DATA_URL = 'https://viralprompts.in/data.json';` to `const DATA_URL = '/data.json';` in `frontend/src/services/viralPromptsClient.ts`.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
-    },
-    {
-      "id": "feature-construct-prompt-image-urls-by-prefixing-the-json-image-path-with-the-base-url-https-viralprompts-in-e-g-uploads-x-jpg-https-viralprompts-in-uploads-x-jpg",
-      "title": "Construct prompt image URLs by prefixing the JSON \"image\" path with the base URL https://viralprompts.in/ (e.g., \"uploads/x.jpg\" -> \"https://viralprompts.in/uploads/x.jpg\").",
-      "reqIds": [
-        "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-app-side-transformation-of-the-howtouse-field-by-splitting-the-string-into-ordered-steps-using-newline-separators-n-without-modifying-the-source-json",
-      "title": "Implement app-side transformation of the \"howToUse\" field by splitting the string into ordered steps using newline separators (\"\\n\"), without modifying the source JSON.",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-create-a-fast-play-store-quality-ui-with-two-primary-screens-1-a-prompts-list-screen-showing-image-title-categories-and-copiedcount-2-a-prompt-detail-screen-showing-description-prompt-text-with-a-copy-to-clipboard-action-parsed-how-to-use-steps-and-a-button-link-to-open-the-canonical-full-page",
-      "title": "Create a fast, Play-Store-quality UI with two primary screens: (1) a prompts list screen showing image, title, categories, and copiedCount; (2) a prompt detail screen showing description, prompt text with a copy-to-clipboard action, parsed how-to-use steps, and a button/link to open the canonical full page.",
-      "reqIds": [
-        "REQ-4"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-open-full-prompt-pages-only-at-https-viralprompts-in-urltitle-as-the-canonical-source-the-app-must-avoid-positioning-its-own-rendered-content-as-the-canonical-seo-surface-i-e-do-not-generate-or-expose-crawlable-duplicate-pages-intended-to-rank",
-      "title": "Open full prompt pages only at https://viralprompts.in/{urlTitle} as the canonical source; the app must avoid positioning its own rendered content as the canonical SEO surface (i.e., do not generate or expose crawlable duplicate pages intended to rank).",
-      "reqIds": [
-        "REQ-5"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-offline-safe-local-caching-for-the-fetched-json-data-and-provide-manual-refresh-logic-so-content-can-update-without-requiring-app-releases",
-      "title": "Add offline-safe local caching for the fetched JSON data and provide manual refresh logic so content can update without requiring app releases.",
-      "reqIds": [
-        "REQ-6"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-a-coherent-consistent-visual-theme-colors-typography-spacing-and-component-styling-appropriate-for-a-prompt-library-product-avoid-blue-purple-as-dominant-brand-colors-unless-explicitly-requested-by-the-user",
-      "title": "Add a coherent, consistent visual theme (colors, typography, spacing, and component styling) appropriate for a \"prompt library\" product; avoid blue/purple as dominant brand colors unless explicitly requested by the user.",
-      "reqIds": [
-        "REQ-7"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-include-user-facing-copy-in-english-that-is-policy-safe-no-misleading-superlatives-like-no-1-best-or-guaranteed-and-clearly-states-that-content-is-fetched-live-from-viralprompts-in",
-      "title": "Include user-facing copy in English that is policy-safe (no misleading superlatives like “No.1”, “Best”, or “Guaranteed”) and clearly states that content is fetched live from viralprompts.in.",
-      "reqIds": [
-        "REQ-8"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-document-play-store-compliance-risks-and-operational-requirements-the-user-called-out-including-20-testers-14-days-testing-expectations-for-2025-2026-as-a-brief-in-repo-note-for-release-planning-do-not-require-backend-changes",
-      "title": "Document Play Store compliance risks and operational requirements the user called out (including 20 testers / 14 days testing expectations for 2025–2026) as a brief in-repo note for release planning; do not require backend changes.",
-      "reqIds": [
-        "REQ-9"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-fix-the-issue-where-prompts-are-not-loading-by-improving-fetch-robustness-and-adding-actionable-error-recovery-in-the-ui-without-changing-the-https-viralprompts-in-data-json-schema-or-assuming-new-fields",
-      "title": "Fix the issue where prompts are not loading by improving fetch robustness and adding actionable error recovery in the UI (without changing the https://viralprompts.in/data.json schema or assuming new fields).",
-      "reqIds": [
-        "REQ-10"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-a-dark-light-theme-toggle-button-in-the-app-ui-similar-to-common-website-theme-toggles-and-persist-the-user-s-choice-locally-so-it-survives-refresh-reopen",
-      "title": "Add a dark/light theme toggle button in the app UI (similar to common website theme toggles) and persist the user’s choice locally so it survives refresh/reopen.",
-      "reqIds": [
-        "REQ-11"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-a-simple-options-settings-area-that-includes-a-few-user-configurable-preferences-in-addition-to-theme-implemented-purely-on-the-frontend-with-local-persistence",
-      "title": "Add a simple Options/Settings area that includes a few user-configurable preferences (in addition to theme), implemented purely on the frontend with local persistence.",
-      "reqIds": [
-        "REQ-12"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-and-refine-the-app-color-styling-so-it-remains-similar-to-the-current-website-like-warm-palette-but-looks-more-polished-and-consistent-across-components-in-both-light-and-dark-mode",
-      "title": "Update and refine the app color styling so it remains similar to the current website-like warm palette but looks more polished and consistent across components in both light and dark mode.",
-      "reqIds": [
-        "REQ-13"
-      ],
-      "version": 1
     }
   ],
-  "new_feature_requests": [
-    {
-      "id": "AR-1",
-      "summary": "Hybrid Android app (Kotlin, minSdk 21+) with native list/detail UI plus WebView for full website pages at https://viralprompts.in/{urlTitle}",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Fetch and parse live JSON from https://viralprompts.in/data.json (structure supported as-is) with app-side transformations (e.g., parse howToUse steps)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Offline-safe local caching plus manual refresh logic for JSON content (no app updates needed for content changes)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "List screen UI: image, title, categories, copiedCount",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-5",
-      "summary": "Detail screen UI: description, prompt with copy button, parsed how-to-use steps, and button to open full page on website",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-6",
-      "summary": "SEO & Play Store policy compliance: avoid duplicate content, position website as ranking asset, compliant store listing claims, and align with 2025–2026 testing requirements",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-7",
-      "summary": "Add a user-facing dark/light theme toggle button (similar to the user’s website UI) and align the app color palette with the website while improving overall branding",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-8",
-      "summary": "Add a simple Options/Settings area (\"thoda options add karo\") for user-configurable preferences",
-      "reqIds": [],
-      "status": "pending"
-    }
-  ],
-  "gameProjectType": "none",
-  "projectName": "ViralPrompts Android App",
+  "new_feature_requests": [],
+  "projectName": "Use local /data.json for prompt data URL",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

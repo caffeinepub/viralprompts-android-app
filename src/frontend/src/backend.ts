@@ -89,10 +89,104 @@ export class ExternalBlob {
         return this;
     }
 }
-export interface backendInterface {
+export interface TransformationInput {
+    context: Uint8Array;
+    response: http_request_result;
 }
+export interface ViralPrompt {
+    id: bigint;
+    title: string;
+    creator: string;
+    shares: bigint;
+    hashtags: Array<string>;
+    description: string;
+    likes: bigint;
+    creationDate: bigint;
+    prompt: string;
+    comments: bigint;
+}
+export interface TransformationOutput {
+    status: bigint;
+    body: Uint8Array;
+    headers: Array<http_header>;
+}
+export interface http_header {
+    value: string;
+    name: string;
+}
+export interface http_request_result {
+    status: bigint;
+    body: Uint8Array;
+    headers: Array<http_header>;
+}
+export interface backendInterface {
+    getAllConfirmedViralPrompts(): Promise<Array<ViralPrompt>>;
+    getRandomPrompt(): Promise<ViralPrompt | null>;
+    loadConfirmedViralPrompts(): Promise<string>;
+    transform(input: TransformationInput): Promise<TransformationOutput>;
+}
+import type { ViralPrompt as _ViralPrompt } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
+    async getAllConfirmedViralPrompts(): Promise<Array<ViralPrompt>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllConfirmedViralPrompts();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllConfirmedViralPrompts();
+            return result;
+        }
+    }
+    async getRandomPrompt(): Promise<ViralPrompt | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getRandomPrompt();
+                return from_candid_opt_n1(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getRandomPrompt();
+            return from_candid_opt_n1(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async loadConfirmedViralPrompts(): Promise<string> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.loadConfirmedViralPrompts();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.loadConfirmedViralPrompts();
+            return result;
+        }
+    }
+    async transform(arg0: TransformationInput): Promise<TransformationOutput> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.transform(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.transform(arg0);
+            return result;
+        }
+    }
+}
+function from_candid_opt_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_ViralPrompt]): ViralPrompt | null {
+    return value.length === 0 ? null : value[0];
 }
 export interface CreateActorOptions {
     agent?: Agent;

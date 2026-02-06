@@ -1,40 +1,35 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T17:00:29.045Z",
-  "summary": "REQ-10 through REQ-13 appear to be implemented: fetch robustness + cache fallback and recovery UI actions were added, theme toggle and theme persistence were implemented, a settings dialog with multiple local-persisted preferences was added, and the global warm palette was refined for light/dark modes.",
+  "generatedAt": "2026-02-06T14:53:12.528Z",
+  "summary": "REQ-1 appears implemented by setting DATA_URL to '/data.json' in frontend/src/services/viralPromptsClient.ts. However, the diff also shows substantial additional changes to prompt parsing/validation and project metadata/docs that were not requested and conflict with the stated non-goals.",
   "missing_requirements": [],
   "hallucinated_features": [
     {
-      "description": "Added a Play Store release planning/compliance document",
-      "reason": "BuildRequest does not ask for release notes or Play Store planning documentation; it only requests theme/settings UI, color styling, and prompt loading fixes.",
+      "description": "Expanded/changed prompt parsing, sanitization, and validation logic (e.g., sanitizePrompt, parseAndValidatePrompts, detailed diagnostics and error classification) beyond the requested DATA_URL constant update.",
+      "reason": "BuildRequest non-goals explicitly say not to alter prompt parsing/validation logic beyond the URL constant update; diff shows significant new logic unrelated to just changing the constant.",
       "evidence": [
-        "frontend/PLAY_STORE_RELEASE_NOTE.md",
-        "frontend-file-summaries.txt"
+        "frontend/src/services/viralPromptsClient.ts"
       ]
     },
     {
-      "description": "Footer attribution changes (caffeine.ai link and heart icon)",
-      "reason": "BuildRequest does not request footer content/attribution changes; only theme/settings UI, color palette refinement, and prompt loading fixes.",
+      "description": "Updated/added project tracking metadata indicating pending feature request and architectural notes.",
+      "reason": "BuildRequest only asked for a one-line constant change in a specific frontend file; modifying project_state.json is not requested.",
+      "evidence": [
+        "project_state.json"
+      ]
+    },
+    {
+      "description": "Modified repository-wide frontend file summary text describing numerous UI/features and behaviors unrelated to the requested URL constant change.",
+      "reason": "BuildRequest did not request updating documentation/summary files or adding unrelated feature descriptions.",
       "evidence": [
         "frontend-file-summaries.txt"
       ]
     }
   ],
-  "confidence": 0.84,
+  "confidence": 0.74,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/src/App.tsx",
-    "frontend/src/components/Header.tsx",
-    "frontend/src/components/PromptDetail.tsx",
-    "frontend/src/components/PromptList.tsx",
-    "frontend/src/components/SettingsDialog.tsx",
-    "frontend/src/components/ThemeToggle.tsx",
-    "frontend/src/hooks/useTheme.ts",
-    "frontend/src/hooks/useUserSettings.ts",
-    "frontend/src/hooks/useViralPrompts.ts",
-    "frontend/src/index.css",
-    "frontend/src/services/viralPromptsCache.ts",
     "frontend/src/services/viralPromptsClient.ts",
     "project_state.json"
   ]

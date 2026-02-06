@@ -7,5 +7,39 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
+export interface TransformationInput {
+    context: Uint8Array;
+    response: http_request_result;
+}
+export interface ViralPrompt {
+    id: bigint;
+    title: string;
+    creator: string;
+    shares: bigint;
+    hashtags: Array<string>;
+    description: string;
+    likes: bigint;
+    creationDate: bigint;
+    prompt: string;
+    comments: bigint;
+}
+export interface TransformationOutput {
+    status: bigint;
+    body: Uint8Array;
+    headers: Array<http_header>;
+}
+export interface http_header {
+    value: string;
+    name: string;
+}
+export interface http_request_result {
+    status: bigint;
+    body: Uint8Array;
+    headers: Array<http_header>;
+}
 export interface backendInterface {
+    getAllConfirmedViralPrompts(): Promise<Array<ViralPrompt>>;
+    getRandomPrompt(): Promise<ViralPrompt | null>;
+    loadConfirmedViralPrompts(): Promise<string>;
+    transform(input: TransformationInput): Promise<TransformationOutput>;
 }

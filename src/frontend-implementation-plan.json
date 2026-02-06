@@ -1,143 +1,21 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Dark/Light theme + Settings preferences, polished warm palette, and robust prompt loading",
+  "title": "Switch prompts JSON URL to local /data.json",
   "requirements": [
     {
-      "id": "REQ-10",
-      "summary": "Harden prompts fetching with better error classification, cache-aware UI states, and user actions to retry or clear cache without changing the remote JSON schema.",
+      "id": "REQ-1",
+      "summary": "Update the prompts JSON data source constant to use the same-origin relative path (/data.json) instead of the hardcoded viralprompts.in URL.",
       "acceptanceCriteria": [
-        "When https://viralprompts.in/data.json is reachable, the Prompts list reliably populates without requiring a hard reload.",
-        "If fetch fails, the app shows an error state that includes a clear Retry action and an option to clear the local cache and retry.",
-        "If cached data exists and live fetch fails, the app continues to render cached prompts and clearly indicates it is showing cached data.",
-        "Fetch failures are logged with enough detail to diagnose (HTTP status when available, invalid JSON/shape errors, network errors), without exposing sensitive data.",
-        "No backend/canister changes are required for prompts to load."
+        "`frontend/src/services/viralPromptsClient.ts` defines `DATA_URL` as `'/data.json'`.",
+        "No remaining references in the frontend code to the hardcoded URL `https://viralprompts.in/data.json`.",
+        "When `fetchViralPrompts()` is used, it requests `/data.json` from the same origin (relative URL)."
       ],
       "file_operations": [
         {
           "path": "frontend/src/services/viralPromptsClient.ts",
           "operation": "modify",
-          "description": "Improve fetch robustness (e.g., abort/timeout handling, clearer error typing/messages for network vs HTTP vs JSON parse vs shape validation) and log actionable diagnostics (HTTP status when available, parse/shape failures) without sensitive data."
-        },
-        {
-          "path": "frontend/src/services/viralPromptsCache.ts",
-          "operation": "modify",
-          "description": "Expose cache metadata needed for UI recovery flows (e.g., safe helpers to check whether cache exists, retrieve timestamp already supported, and ensure clearCache is usable from UI without throwing)."
-        },
-        {
-          "path": "frontend/src/hooks/useViralPrompts.ts",
-          "operation": "modify",
-          "description": "Track and expose cache-aware state for the UI (e.g., whether current data is from cache/initialData, last fetch attempt outcome, and a clear-cache-and-refetch helper) while continuing to avoid any schema assumptions beyond top-level prompts[]."
-        },
-        {
-          "path": "frontend/src/components/PromptList.tsx",
-          "operation": "modify",
-          "description": "Upgrade loading/error states to include actionable recovery: show Retry action and a Clear local cache + Retry action; if cached prompts are shown after a fetch failure, render a clear “Showing cached data” indicator. Use existing shadcn/ui primitives (Button, Alert, Card, etc.) to compose the UI; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Wire any new cache-aware flags and recovery handlers from useViralPrompts into PromptList props so the list can render robust error recovery and cached-data indicators."
-        }
-      ]
-    },
-    {
-      "id": "REQ-11",
-      "summary": "Add a header-accessible dark/light theme toggle with class-based dark mode and local persistence.",
-      "acceptanceCriteria": [
-        "A visible theme toggle control is available from the main UI (e.g., in the header).",
-        "Toggling updates the UI immediately by switching Tailwind/Shadcn darkMode class behavior (class-based dark mode).",
-        "The chosen theme is saved to localStorage and restored on next app load.",
-        "User-facing labels/tooltips (if any) are in English (e.g., “Light”, “Dark”, “System”)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useTheme.ts",
-          "operation": "create",
-          "description": "Create a small theme management hook that supports Light/Dark/System, persists selection in localStorage, and applies/removes the 'dark' class on the document root for Tailwind class-based dark mode."
-        },
-        {
-          "path": "frontend/src/components/ThemeToggle.tsx",
-          "operation": "create",
-          "description": "Add a compact theme toggle control for the header that switches between Light/Dark (and optionally reflects System). Compose the control using shadcn/ui building blocks (e.g., Button + Tooltip/Dropdown if available); verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/Header.tsx",
-          "operation": "modify",
-          "description": "Place the ThemeToggle in the main header UI near the existing About action, ensuring it remains visible and usable across list/detail views. Compose with existing shadcn/ui components where needed; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Initialize/apply the persisted theme early in app render using useTheme (or a small wrapper component) so theme is restored on load and updates immediately on toggle."
-        }
-      ]
-    },
-    {
-      "id": "REQ-12",
-      "summary": "Add a Settings/Options entry point with theme and at least two additional UI preferences, all applied immediately and persisted locally.",
-      "acceptanceCriteria": [
-        "A Settings/Options entry point is accessible from the main UI (e.g., header button opening a dialog/sheet).",
-        "Settings include at least: Theme (Light/Dark/System) and 2+ additional simple UI preferences (e.g., compact grid spacing, show/hide images in list, default sort order such as “Newest” vs “Most copied”).",
-        "All settings changes apply immediately and persist via localStorage.",
-        "All user-facing settings text is in English and policy-safe."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useUserSettings.ts",
-          "operation": "create",
-          "description": "Create a frontend-only settings hook/store that persists preferences in localStorage and exposes reactive values + setters (at minimum: Theme mode, Compact grid spacing, Show images in list, Default sort order)."
-        },
-        {
-          "path": "frontend/src/components/SettingsDialog.tsx",
-          "operation": "create",
-          "description": "Implement a Settings dialog/sheet UI containing controls for Theme (Light/Dark/System) plus at least 2 additional preferences (compact spacing, show/hide images, default sort). Compose using shadcn/ui primitives (Dialog/Sheet, Switch, Select/RadioGroup, Button, etc.) without editing frontend/src/components/ui; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/Header.tsx",
-          "operation": "modify",
-          "description": "Add a Settings/Options entry point (button) in the header that opens SettingsDialog, alongside About and Theme controls. Use shadcn/ui composition only; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Read settings via useUserSettings and pass relevant preferences down to PromptList/PromptDetail as needed so changes apply immediately (e.g., list sort order, list image visibility, compact spacing)."
-        },
-        {
-          "path": "frontend/src/components/PromptList.tsx",
-          "operation": "modify",
-          "description": "Apply settings-driven presentation changes: optionally hide images in list cards, adjust grid spacing for compact mode, and apply selected sort order deterministically. Keep existing navigation/layout intact. Compose with existing shadcn/ui components only; verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-13",
-      "summary": "Refine the warm color theme tokens for a more polished, consistent look across light and dark modes without altering layout/navigation.",
-      "acceptanceCriteria": [
-        "The UI maintains a cohesive warm theme (no blue/purple as dominant colors) with consistent use of primary/accent colors across Header, buttons, cards, badges, and dialogs.",
-        "Light and dark themes both have readable contrast for text, borders, and muted elements.",
-        "No changes are made that break existing layout/navigation (list screen and detail screen still function as before)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/index.css",
-          "operation": "modify",
-          "description": "Refine the existing OKLCH CSS color tokens (background/foreground, primary/accent, muted/border/input/ring, and dark equivalents) to improve contrast and consistency while keeping the warm amber/orange palette dominant."
-        },
-        {
-          "path": "frontend/src/components/Header.tsx",
-          "operation": "modify",
-          "description": "Ensure header styling remains consistent with the refined tokens (background/border/foreground states) and that newly added controls (theme toggle/settings) use the same visual language via existing shadcn/ui variants; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/PromptList.tsx",
-          "operation": "modify",
-          "description": "Tune card/hover/badge/button usage (variants only, not UI component internals) to align with the refined warm palette in both light/dark mode; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/PromptDetail.tsx",
-          "operation": "modify",
-          "description": "Adjust variant usage for buttons, badges, separators, and muted surfaces to match the refined palette and maintain readable contrast in both themes; verify the component's usage instructions before implementing."
+          "description": "Change `const DATA_URL = 'https://viralprompts.in/data.json';` to `const DATA_URL = '/data.json';` and ensure no other occurrences of the hardcoded `https://viralprompts.in/data.json` string remain in this file."
         }
       ]
     }
