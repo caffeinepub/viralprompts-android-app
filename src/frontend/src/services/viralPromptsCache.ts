@@ -1,4 +1,5 @@
 import type { ViralPromptsResponse } from '../types/viralPrompts';
+import { normalizePromptsResponse } from './viralPromptsParsing';
 
 const CACHE_KEY = 'viralprompts_cache_v1';
 const CACHE_TIMESTAMP_KEY = 'viralprompts_cache_timestamp_v1';
@@ -13,14 +14,15 @@ export function getCachedPrompts(): ViralPromptsResponse | null {
     const cached = localStorage.getItem(CACHE_KEY);
     if (!cached) return null;
 
-    const parsed = JSON.parse(cached) as ViralPromptsResponse;
+    const parsed = JSON.parse(cached);
     
-    // Validate structure
-    if (!parsed || !Array.isArray(parsed.prompts)) {
+    // Use shared normalization/validation utility
+    try {
+      return normalizePromptsResponse(parsed);
+    } catch (validationError) {
+      console.warn('Cached data failed validation, ignoring cache:', validationError);
       return null;
     }
-
-    return parsed;
   } catch (error) {
     console.error('Error reading cache:', error);
     return null;

@@ -1,33 +1,50 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-06T14:53:12.530Z",
+  "generatedAt": "2026-02-06T16:10:01.159Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 1,
-    "implemented": 1,
+    "total": 2,
+    "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Update the frontend data source constant so the app uses the local path for the prompts JSON: change `const DATA_URL = 'https://viralprompts.in/data.json';` to `const DATA_URL = '/data.json';` in `frontend/src/services/viralPromptsClient.ts`.",
+        "summary": "Deep-check and fix the prompt-loading pipeline so the app no longer shows “Failed to load prompts” due to (a) network errors and (b) server data format/validation errors when fetching https://viralprompts.in/data.json via the backend canister.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/services/viralPromptsClient.ts"
+          "frontend/src/services/viralPromptsClient.ts",
+          "frontend/src/hooks/useViralPrompts.ts",
+          "frontend/src/components/PromptList.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/services/viralPromptsClient.ts"
+          "frontend/src/services/viralPromptsClient.ts",
+          "frontend/src/components/PromptList.tsx"
+        ]
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Add a visible app version label to the bottom/footer so users can verify they are on the latest build; display the exact string “v15” in the footer UI.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/Footer.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/Footer.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/components/Footer.tsx",
+    "frontend/src/components/PromptList.tsx",
     "frontend/src/services/viralPromptsClient.ts",
     "project_state.json",
     "scratch/component-selection.json",

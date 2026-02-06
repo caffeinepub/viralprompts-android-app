@@ -1,15 +1,15 @@
 {
   "frontend/src/types/viralPrompts.ts": "TypeScript interfaces for viral prompts with nullable/optional fields to handle missing data gracefully while matching the remote JSON structure.",
-  "frontend/src/services/viralPromptsClient.ts": "HTTPS client with backend-mediated fetch function (fetchViralPromptsViaBackend) that calls the backend canister to fetch from /data.json (relative URL), plus legacy direct fetch with comprehensive error classification and detailed console diagnostics.",
-  "frontend/src/services/viralPromptsCache.ts": "Local persistence layer with helpers to check cache existence, retrieve timestamps, and safely clear cache for UI recovery flows.",
+  "frontend/src/services/viralPromptsClient.ts": "HTTPS client with backend-mediated fetch that detects HTML/non-JSON responses BEFORE attempting JSON.parse(), properly categorizing Cloudflare blocks and server errors as network/cloudflare type (not parse/validation errors), ensuring robust error classification for all upstream failure modes.",
+  "frontend/src/services/viralPromptsCache.ts": "Local persistence layer that uses shared normalization/validation when reading cached JSON, safely ignoring corrupted or unexpected cache shapes to prevent UI crashes.",
   "frontend/src/utils/viralPrompts.ts": "Utility functions for constructing image URLs, canonical page URLs, and parsing howToUse steps from newline-separated strings.",
   "frontend/src/utils/clipboard.ts": "Cross-browser clipboard helper with modern Clipboard API and fallback support.",
   "frontend/src/hooks/useViralPrompts.ts": "React Query hook for fetching and caching viral prompts via backend actor with corrected cache-aware state computation, error tracking, and recovery helpers (refresh, clearCacheAndRefresh).",
-  "frontend/src/components/PromptList.tsx": "List screen displaying prompts with search, filters, sort options, enhanced error diagnostics with user-friendly messages based on error type, accurate cache indicator, and visible retry actions.",
+  "frontend/src/components/PromptList.tsx": "List screen displaying prompts with search, filters, sort options, and improved error messaging that presents HTML/blocked responses as \"Network error\" with user-friendly guidance, accurate cache indicator, and visible retry actions.",
   "frontend/src/components/PromptDetail.tsx": "Detail screen showing full prompt info with copy-to-clipboard, parsed how-to steps, like/share actions, and open-full-page button to the canonical viralprompts.in URL.",
   "frontend/src/components/AboutDialog.tsx": "Dialog component with policy-safe copy disclosing that content is fetched live from viralprompts.in.",
   "frontend/src/components/Header.tsx": "App header with branding, theme toggle, settings dialog, and about dialog controls.",
-  "frontend/src/components/Footer.tsx": "App footer with attribution including caffeine.ai link and heart icon.",
+  "frontend/src/components/Footer.tsx": "App footer with attribution including caffeine.ai link, heart icon, and version label \"v15\" displayed on the right side, visible across all app states.",
   "frontend/src/App.tsx": "Main app component managing list/detail navigation with error boundary integration, passing refresh and clearCacheAndRefresh handlers with boundary reset support.",
   "frontend/src/index.css": "Global styles with refined OKLCH warm amber/orange color palette for light and dark modes with improved contrast and consistency.",
   "frontend/tailwind.config.js": "Tailwind configuration with extended theme matching the warm amber/orange color palette and standard spacing/radius tokens.",
@@ -21,5 +21,6 @@
   "frontend/src/hooks/useLikedPrompts.ts": "React hook that manages liked prompts using localStorage, providing functions to check if a prompt is liked, toggle like status, and track the total count of liked prompts.",
   "frontend/src/utils/sharePrompt.ts": "Utility function that shares a prompt's canonical URL using the Web Share API when available, falling back to clipboard copy with result indication for UI feedback.",
   "frontend/src/main.tsx": "Application entry point with React Query, theme provider, and Sonner toast notifications configured for the app.",
-  "frontend/src/components/AppErrorBoundary.tsx": "React error boundary component that catches render-time errors and displays a friendly recovery screen with Retry and Clear cache & retry actions."
+  "frontend/src/components/AppErrorBoundary.tsx": "React error boundary component that catches render-time errors and displays a friendly recovery screen with Retry and Clear cache & retry actions.",
+  "frontend/src/services/viralPromptsParsing.ts": "Shared parsing utilities that preprocess raw text (UTF-8 BOM removal, trimming), sanitize individual prompt items, and normalize the server response into a validated ViralPromptsResponse with a top-level prompts array."
 }

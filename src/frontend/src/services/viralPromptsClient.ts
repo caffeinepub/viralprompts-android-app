@@ -1,13 +1,14 @@
-import type { ViralPromptsResponse, ViralPrompt } from '../types/viralPrompts';
+import type { ViralPromptsResponse } from '../types/viralPrompts';
 import type { backendInterface } from '../backend';
+import { preprocessRawText, normalizePromptsResponse } from './viralPromptsParsing';
 
-const DATA_URL = '/data.json';
+const DATA_URL = 'https://viralprompts.in/data.json';
 const FETCH_TIMEOUT = 15000; // 15 seconds
 
 export class FetchError extends Error {
   constructor(
     message: string,
-    public readonly type: 'network' | 'http' | 'parse' | 'validation',
+    public readonly type: 'network' | 'http' | 'parse' | 'validation' | 'cloudflare',
     public readonly statusCode?: number
   ) {
     super(message);
@@ -15,108 +16,169 @@ export class FetchError extends Error {
   }
 }
 
-function sanitizePrompt(item: any): ViralPrompt | null {
-  try {
-    // Required fields
-    if (!item || typeof item !== 'object') return null;
-    if (typeof item.title !== 'string' || !item.title.trim()) return null;
-    if (typeof item.prompt !== 'string' || !item.prompt.trim()) return null;
-    if (typeof item.urlTitle !== 'string' || !item.urlTitle.trim()) return null;
-    
-    // Accept id as number or numeric string, convert to number
-    let id: number;
-    if (typeof item.id === 'number') {
-      id = item.id;
-    } else if (typeof item.id === 'string') {
-      id = Number(item.id);
-    } else {
-      return null;
-    }
-    
-    // Reject NaN or non-finite numbers
-    if (!Number.isFinite(id)) return null;
-
-    // Accept copiedCount as number or numeric string, convert to number or null
-    let copiedCount: number | null = null;
-    if (typeof item.copiedCount === 'number') {
-      copiedCount = Number.isFinite(item.copiedCount) ? item.copiedCount : null;
-    } else if (typeof item.copiedCount === 'string') {
-      const parsed = Number(item.copiedCount);
-      copiedCount = Number.isFinite(parsed) ? parsed : null;
-    }
-
-    // Return sanitized prompt with safe defaults for optional/nullable fields
-    return {
-      title: item.title,
-      description: typeof item.description === 'string' ? item.description : null,
-      prompt: item.prompt,
-      image: typeof item.image === 'string' ? item.image : null,
-      categories: Array.isArray(item.categories) ? item.categories.filter((c: any) => typeof c === 'string') : null,
-      howToUse: typeof item.howToUse === 'string' ? item.howToUse : null,
-      urlTitle: item.urlTitle,
-      id,
-      copiedCount,
-      createdDate: typeof item.createdDate === 'string' ? item.createdDate : null,
-    };
-  } catch (error) {
-    console.warn('Failed to sanitize prompt item:', error);
-    return null;
+/**
+ * Detect if the response looks like HTML or a non-JSON error page
+ * This must be called BEFORE attempting JSON.parse()
+ */
+function detectNonJsonResponse(rawText: string): boolean {
+  if (!rawText || typeof rawText !== 'string') return false;
+  
+  const trimmed = rawText.trim();
+  
+  // Check for HTML document indicators
+  const htmlIndicators = [
+    '<!doctype',
+    '<!DOCTYPE',
+    '<html',
+    '<HTML',
+    '<head>',
+    '<HEAD>',
+    '<body>',
+    '<BODY>',
+  ];
+  
+  // Check if response starts with HTML tags
+  const startsWithHtml = htmlIndicators.some(indicator => 
+    trimmed.toLowerCase().startsWith(indicator.toLowerCase())
+  );
+  
+  if (startsWithHtml) {
+    return true;
   }
+  
+  // Check for common HTML patterns anywhere in the response
+  const lowerText = trimmed.toLowerCase();
+  const hasHtmlStructure = (
+    (lowerText.includes('<html') || lowerText.includes('<!doctype')) &&
+    (lowerText.includes('<head>') || lowerText.includes('<body>'))
+  );
+  
+  if (hasHtmlStructure) {
+    return true;
+  }
+  
+  // Check if it starts with something that's definitely not JSON
+  const firstChar = trimmed[0];
+  if (firstChar && firstChar !== '{' && firstChar !== '[') {
+    // Could be HTML, XML, plain text error, etc.
+    // Check for common error page patterns
+    if (lowerText.includes('<title>') || lowerText.includes('error') || lowerText.includes('forbidden')) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+/**
+ * Detect if the response looks like a Cloudflare error or block
+ */
+function detectCloudflareBlock(rawText: string): boolean {
+  if (!rawText || typeof rawText !== 'string') return false;
+  
+  const lowerText = rawText.toLowerCase();
+  
+  // Check for common Cloudflare error indicators
+  const cloudflareIndicators = [
+    'cloudflare',
+    'cf-ray',
+    'error 520',
+    'error 521',
+    'error 522',
+    'error 523',
+    'error 524',
+    'error 525',
+    'error 526',
+    'web server is down',
+    'connection timed out',
+    'origin is unreachable',
+    'ray id:',
+  ];
+  
+  return cloudflareIndicators.some(indicator => lowerText.includes(indicator));
+}
+
+/**
+ * Detect if the response looks like an access denied / forbidden error
+ */
+function detectAccessDenied(rawText: string): boolean {
+  if (!rawText || typeof rawText !== 'string') return false;
+  
+  const lowerText = rawText.toLowerCase();
+  
+  const accessDeniedIndicators = [
+    'access denied',
+    '403 forbidden',
+    'not authorized',
+    'permission denied',
+    'forbidden',
+  ];
+  
+  return accessDeniedIndicators.some(indicator => lowerText.includes(indicator));
 }
 
 function parseAndValidatePrompts(rawText: string): ViralPromptsResponse {
+  // Preprocess: remove BOM and trim whitespace
+  const cleanedText = preprocessRawText(rawText);
+  
+  if (!cleanedText) {
+    console.error('Empty response after preprocessing');
+    throw new FetchError(
+      `Empty response from ${DATA_URL}`,
+      'validation'
+    );
+  }
+
+  // CRITICAL: Check if response is HTML or non-JSON BEFORE attempting to parse
+  if (detectNonJsonResponse(cleanedText)) {
+    console.error('Response is not JSON (appears to be HTML or error page)');
+    console.log('Response preview (first 500 chars):', cleanedText.substring(0, 500));
+    
+    // Determine the specific type of error
+    if (detectCloudflareBlock(cleanedText)) {
+      throw new FetchError(
+        `The data source ${DATA_URL} is blocked by Cloudflare protection. The server's security system is rejecting automated requests. Please try again later.`,
+        'cloudflare'
+      );
+    }
+    
+    if (detectAccessDenied(cleanedText)) {
+      throw new FetchError(
+        `Access denied by ${DATA_URL}. The server is blocking this request. Please try again later.`,
+        'cloudflare'
+      );
+    }
+    
+    // Generic HTML/non-JSON error
+    throw new FetchError(
+      `The server at ${DATA_URL} returned an error page instead of JSON data. This may be due to server-side blocking or temporary unavailability. Please try again later.`,
+      'cloudflare'
+    );
+  }
+
   let data: unknown;
   try {
-    console.log('Parsing JSON response (length:', rawText.length, 'chars)');
-    data = JSON.parse(rawText);
+    console.log('Parsing JSON response (length:', cleanedText.length, 'chars)');
+    data = JSON.parse(cleanedText);
   } catch (parseError) {
     console.error('JSON parse error:', parseError);
-    console.log('Failed to parse text:', rawText.substring(0, 500) || '(empty response)');
+    console.log('Failed to parse text (first 500 chars):', cleanedText.substring(0, 500) || '(empty response)');
     throw new FetchError(
-      'Failed to parse JSON response',
+      `Failed to parse JSON response from ${DATA_URL}`,
       'parse'
     );
   }
 
-  // Validate the expected structure
-  if (!data || typeof data !== 'object' || !Array.isArray((data as any).prompts)) {
-    console.error('Invalid data structure:', data);
-    console.log('Expected top-level object with "prompts" array, got:', typeof data, data);
+  // Normalize and validate using shared utility
+  try {
+    return normalizePromptsResponse(data);
+  } catch (validationError) {
+    console.error('Validation error:', validationError);
     throw new FetchError(
-      'Invalid JSON structure: expected top-level object with "prompts" array',
+      validationError instanceof Error ? validationError.message : 'Data format error',
       'validation'
     );
   }
-
-  // Sanitize and validate individual prompt items
-  const rawPrompts = (data as any).prompts;
-  const sanitizedPrompts: ViralPrompt[] = [];
-  let skippedCount = 0;
-
-  for (const item of rawPrompts) {
-    const sanitized = sanitizePrompt(item);
-    if (sanitized) {
-      sanitizedPrompts.push(sanitized);
-    } else {
-      skippedCount++;
-    }
-  }
-
-  if (skippedCount > 0) {
-    console.warn(`Skipped ${skippedCount} invalid prompt items out of ${rawPrompts.length} total`);
-  }
-
-  if (sanitizedPrompts.length === 0) {
-    console.error('No valid prompts after sanitization. Total items:', rawPrompts.length, 'Skipped:', skippedCount);
-    throw new FetchError(
-      'No valid prompts found in response',
-      'validation'
-    );
-  }
-
-  console.log(`Successfully loaded ${sanitizedPrompts.length} prompts (skipped ${skippedCount})`);
-
-  return { prompts: sanitizedPrompts };
 }
 
 /**
@@ -132,7 +194,7 @@ export async function fetchViralPromptsViaBackend(actor: backendInterface): Prom
       console.error('Backend returned invalid response:', typeof rawText, rawText);
       throw new FetchError(
         'Backend returned invalid response (expected string)',
-        'validation'
+        'network'
       );
     }
 
@@ -147,6 +209,15 @@ export async function fetchViralPromptsViaBackend(actor: backendInterface): Prom
     }
 
     if (error instanceof Error) {
+      // Check if error message contains Cloudflare indicators
+      const errorMsg = error.message.toLowerCase();
+      if (errorMsg.includes('cloudflare') || errorMsg.includes('520') || errorMsg.includes('403')) {
+        throw new FetchError(
+          `The data source ${DATA_URL} may be blocked by Cloudflare protection. Please try again later.`,
+          'cloudflare'
+        );
+      }
+      
       throw new FetchError(
         `Backend fetch failed: ${error.message}`,
         'network'
@@ -185,6 +256,17 @@ export async function fetchViralPrompts(): Promise<ViralPromptsResponse> {
       try {
         const errorText = await response.text();
         console.log('Raw response text (HTTP error):', errorText);
+        
+        // Check for non-JSON response
+        if (detectNonJsonResponse(errorText)) {
+          if (detectCloudflareBlock(errorText) || detectAccessDenied(errorText)) {
+            throw new FetchError(
+              `The data source ${DATA_URL} may be blocked by Cloudflare protection.`,
+              'cloudflare',
+              response.status
+            );
+          }
+        }
       } catch (textError) {
         console.warn('Could not read error response text:', textError);
       }

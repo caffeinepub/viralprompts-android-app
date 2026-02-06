@@ -2,9 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-frontend-data-source-constant-so-the-app-uses-the-local-path-for-the-prompts-json-change-const-data-url-https-viralprompts-in-data-json-to-const-data-url-data-json-in-frontend-src-services-viralpromptsclient-ts",
-      "featureTitle": "Update the frontend data source constant so the app uses the local path for the prompts JSON: change `const DATA_URL = 'https://viralprompts.in/data.json';` to `const DATA_URL = '/data.json';` in `frontend/src/services/viralPromptsClient.ts`.",
+      "featureId": "feature-deep-check-and-fix-the-prompt-loading-pipeline-so-the-app-no-longer-shows-failed-to-load-prompts-due-to-a-network-errors-and-b-server-data-format-validation-errors-when-fetching-https-viralprompts-in-data-json-via-the-backend-canister",
+      "featureTitle": "Deep-check and fix the prompt-loading pipeline so the app no longer shows “Failed to load prompts” due to (a) network errors and (b) server data format/validation errors when fetching https://viralprompts.in/data.json via the backend canister.",
       "files": [
+        "frontend/src/components/PromptList.tsx",
         "frontend/src/services/viralPromptsClient.ts"
       ],
       "components": [
@@ -17,6 +18,25 @@
       ],
       "testIds": [
         "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-visible-app-version-label-to-the-bottom-footer-so-users-can-verify-they-are-on-the-latest-build-display-the-exact-string-v15-in-the-footer-ui",
+      "featureTitle": "Add a visible app version label to the bottom/footer so users can verify they are on the latest build; display the exact string “v15” in the footer UI.",
+      "files": [
+        "frontend/src/components/Footer.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
       ],
       "confidence": "high"
     }

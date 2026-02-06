@@ -1,6 +1,7 @@
 import OutCall "http-outcalls/outcall";
 import List "mo:core/List";
 import Iter "mo:core/Iter";
+import Text "mo:core/Text";
 
 actor {
   type ViralPrompt = {
@@ -16,17 +17,79 @@ actor {
     creationDate : Nat;
   };
 
-  var confirmedViralPrompts = List.empty<ViralPrompt>();
-  var failedPrompts = List.empty<ViralPrompt>();
-  var customPrompts = List.empty<ViralPrompt>();
+  let confirmedViralPrompts = List.empty<ViralPrompt>();
+  let failedPrompts = List.empty<ViralPrompt>();
+  let customPrompts = List.empty<ViralPrompt>();
+
+  var lastKnownGoodData : ?Text = null;
+  var lastFetchSuccessful = false;
 
   public query func transform(input : OutCall.TransformationInput) : async OutCall.TransformationOutput {
     OutCall.transform(input);
   };
 
-  // Load viral prompts from the source website.
   public func loadConfirmedViralPrompts() : async Text {
-    await OutCall.httpGetRequest("https://viralprompts.in/data.json", [], transform);
+    let requestHeaders : [OutCall.Header] = [
+      {
+        name = "Accept";
+        value = "application/json, text/plain, */*";
+      },
+      {
+        name = "Accept-Language";
+        value = "en-US,en;q=0.9";
+      },
+      {
+        name = "Cache-Control";
+        value = "no-cache";
+      },
+      {
+        name = "Pragma";
+        value = "no-cache";
+      },
+      {
+        name = "Connection";
+        value = "keep-alive";
+      },
+      {
+        name = "Accept-Encoding";
+        value = "gzip, deflate, br";
+      },
+    ];
+
+    let fetchResult = await OutCall.httpGetRequest("https://viralprompts.in/data.json", requestHeaders, transform);
+
+    let isCloudflareError = fetchResult.contains(#text "Cloudflare");
+    let is520Error = fetchResult.contains(#text "520");
+    let is403Error = fetchResult.contains(#text "403");
+
+    switch (isCloudflareError, is520Error, is403Error) {
+      case (true, _, _) {
+        lastFetchSuccessful := false;
+        switch (lastKnownGoodData) {
+          case (null) { fetchResult };
+          case (?validData) { validData };
+        };
+      };
+      case (_, true, _) {
+        lastFetchSuccessful := false;
+        switch (lastKnownGoodData) {
+          case (null) { fetchResult };
+          case (?validData) { validData };
+        };
+      };
+      case (_, _, true) {
+        lastFetchSuccessful := false;
+        switch (lastKnownGoodData) {
+          case (null) { fetchResult };
+          case (?validData) { validData };
+        };
+      };
+      case _ {
+        lastFetchSuccessful := true;
+        lastKnownGoodData := ?fetchResult;
+        fetchResult; // Successful fetch, return content directly
+      };
+    };
   };
 
   func addFailedPrompt(prompt : ViralPrompt) {
@@ -41,9 +104,6 @@ actor {
     let promptsArray = confirmedViralPrompts.toArray();
     let promptCount = promptsArray.size();
     if (promptCount == 0) { return null };
-    // TODO: Implement random number generator once supported
-    // Has to return the first entry for now as a placeholder due to
-    // current lack of random number generation support in Motoko
     ?promptsArray[0];
   };
 };

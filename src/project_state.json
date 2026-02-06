@@ -1,24 +1,50 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
+  "summary": "App build/deploy project with prompt-loading functionality; currently experiencing prompt loading failures and needs a visible footer version label (target v15).",
   "architectural_notes": [
-    "Use relative path for prompt data source: set DATA_URL to '/data.json' instead of hardcoded 'https://viralprompts.in/data.json'."
+    "Add a persistent footer UI element that reads the current app/build version string (e.g., 'v15').",
+    "Improve prompts fetch pipeline: handle network errors, validate/parse response schema, and provide resilient error handling for invalid server data."
   ],
-  "known_issues": [],
+  "known_issues": [
+    "Prompt loading fails with 'Failed to load prompts' (Network error: connection issue or blocking automated requests).",
+    "Prompt loading fails with 'Failed to load prompts' (Data format error: server returned invalid/unsupported data).",
+    "No visible bottom/footer version label; users can’t confirm if the app is running an updated version (e.g., v10/v11/v15)."
+  ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-update-the-frontend-data-source-constant-so-the-app-uses-the-local-path-for-the-prompts-json-change-const-data-url-https-viralprompts-in-data-json-to-const-data-url-data-json-in-frontend-src-services-viralpromptsclient-ts",
-      "title": "Update the frontend data source constant so the app uses the local path for the prompts JSON: change `const DATA_URL = 'https://viralprompts.in/data.json';` to `const DATA_URL = '/data.json';` in `frontend/src/services/viralPromptsClient.ts`.",
+      "id": "feature-deep-check-and-fix-the-prompt-loading-pipeline-so-the-app-no-longer-shows-failed-to-load-prompts-due-to-a-network-errors-and-b-server-data-format-validation-errors-when-fetching-https-viralprompts-in-data-json-via-the-backend-canister",
+      "title": "Deep-check and fix the prompt-loading pipeline so the app no longer shows “Failed to load prompts” due to (a) network errors and (b) server data format/validation errors when fetching https://viralprompts.in/data.json via the backend canister.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-add-a-visible-app-version-label-to-the-bottom-footer-so-users-can-verify-they-are-on-the-latest-build-display-the-exact-string-v15-in-the-footer-ui",
+      "title": "Add a visible app version label to the bottom/footer so users can verify they are on the latest build; display the exact string “v15” in the footer UI.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
     }
   ],
-  "new_feature_requests": [],
-  "projectName": "Use local /data.json for prompt data URL",
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Display the current app version label in the bottom/footer (e.g., v10/v11/v15) so users can verify whether the build is updated or old.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Fix 'Failed to load prompts' errors by deep-checking network failures and server data format validation/handling.",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "projectName": "Fix prompt loading failures and show app version label (v15) in footer",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

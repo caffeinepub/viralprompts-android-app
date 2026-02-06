@@ -1,33 +1,55 @@
 {
   "kind": "build_request",
-  "title": "Use local /data.json for prompt data URL",
-  "priority": "normal",
+  "title": "Fix prompt loading failures and show app version label (v15) in footer",
+  "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Update the frontend data source constant so the app uses the local path for the prompts JSON: change `const DATA_URL = 'https://viralprompts.in/data.json';` to `const DATA_URL = '/data.json';` in `frontend/src/services/viralPromptsClient.ts`.",
-      "target": "frontend",
+      "text": "Deep-check and fix the prompt-loading pipeline so the app no longer shows “Failed to load prompts” due to (a) network errors and (b) server data format/validation errors when fetching https://viralprompts.in/data.json via the backend canister.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-1"
         ],
         "quotes": [
-          "change const DATA_URL = 'https://viralprompts.in/data.json'; into const DATA_URL = '/data.json';"
+          "still failed to load prompt error Failed to load prompts\nNetwork connection issue... (Network error)\n\n...Failed to load prompts\nData format error... (Data format error) ... please deep check and fix it"
         ]
       },
       "acceptanceCriteria": [
-        "`frontend/src/services/viralPromptsClient.ts` defines `DATA_URL` as `'/data.json'`.",
-        "No remaining references in the frontend code to the hardcoded URL `https://viralprompts.in/data.json`.",
-        "When `fetchViralPrompts()` is used, it requests `/data.json` from the same origin (relative URL)."
+        "When https://viralprompts.in/data.json returns valid JSON in the supported shape, prompts load successfully without any error banner.",
+        "If the upstream response is HTML/Cloudflare/error content, the frontend categorizes it as a Cloudflare/server/network failure (not a “Data format error”) and shows the existing user-friendly guidance.",
+        "The backend does not overwrite its last-known-good cached response with an invalid (non-JSON / HTML / blocked) response, so a temporary upstream block does not permanently break subsequent loads.",
+        "Retry and “Clear cache & retry” actions still work and do not crash the UI.",
+        "All user-facing error strings remain in English."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Add a visible app version label to the bottom/footer so users can verify they are on the latest build; display the exact string “v15” in the footer UI.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "neeche bottom mein version bhi likh ke rakko v 10 v 11 updated h ki old wala show hora vo pta chale v15 bnao is baar ... v15 mention at last"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The footer renders a version label that includes “v15” on every page/state of the app (list view and detail view).",
+        "The version label is visually unobtrusive and does not break the existing footer layout on mobile or desktop.",
+        "The version text is not conditional on network state; it always displays."
       ]
     }
   ],
   "constraints": [
-    "Do not edit any files under the listed frontend immutable paths (e.g., `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, `frontend/src/components/ui`)."
+    "Backend must remain a single Motoko actor in backend/main.mo (no additional backend services).",
+    "Do not edit any files under frontend/src/components/ui or any paths listed as immutable in SYSTEM_CONTEXT."
   ],
   "nonGoals": [
-    "Do not change backend fetching/outcall behavior.",
-    "Do not redesign UI or alter prompt parsing/validation logic beyond the URL constant update."
+    "Add new external data sources or third-party integrations to bypass Cloudflare beyond the existing backend outcall approach.",
+    "Implement real-time updates or push-based prompt refresh.",
+    "Change the prompts product features (likes, sharing, search) beyond what is required to fix loading failures and display the version label."
   ],
   "imageRequirements": {
     "required": [],

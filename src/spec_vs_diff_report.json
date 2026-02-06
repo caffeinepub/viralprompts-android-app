@@ -1,35 +1,48 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-06T14:53:12.528Z",
-  "summary": "REQ-1 appears implemented by setting DATA_URL to '/data.json' in frontend/src/services/viralPromptsClient.ts. However, the diff also shows substantial additional changes to prompt parsing/validation and project metadata/docs that were not requested and conflict with the stated non-goals.",
-  "missing_requirements": [],
+  "generatedAt": "2026-02-06T16:10:01.156Z",
+  "summary": "REQ-2 (footer version label “v15”) appears implemented. REQ-1 has partial fixes (frontend improved error classification; backend adds last-known-good caching and Cloudflare/520/403 detection), but the backend cache-protection against any invalid/non-JSON upstream content is not fully evidenced, since the backend does not validate JSON before overwriting the cache.",
+  "missing_requirements": [
+    {
+      "id": "REQ-1",
+      "requirement": "The backend does not overwrite its last-known-good cached response with an invalid (non-JSON / HTML / blocked) response, so a temporary upstream block does not permanently break subsequent loads.",
+      "reason": "backend/main.mo only checks for substrings like “Cloudflare”, “520”, “403” before deciding not to update the cache; it does not validate that the response is actually JSON (or detect generic HTML/non-JSON) before setting lastKnownGoodData := ?fetchResult. This can still overwrite the cache with other invalid HTML/error pages that don’t contain those tokens.",
+      "evidence": [
+        "backend/main.mo"
+      ]
+    }
+  ],
   "hallucinated_features": [
     {
-      "description": "Expanded/changed prompt parsing, sanitization, and validation logic (e.g., sanitizePrompt, parseAndValidatePrompts, detailed diagnostics and error classification) beyond the requested DATA_URL constant update.",
-      "reason": "BuildRequest non-goals explicitly say not to alter prompt parsing/validation logic beyond the URL constant update; diff shows significant new logic unrelated to just changing the constant.",
+      "description": "Added/expanded product features beyond prompt-loading fix, including search, liked-only filtering, sorting options, and like/share behaviors in the prompt list UI.",
+      "reason": "Non-goals specify not changing prompts product features (likes, sharing, search) beyond what’s required for loading failures and version label, but the diff summary indicates these UI capabilities are present.",
       "evidence": [
-        "frontend/src/services/viralPromptsClient.ts"
+        "frontend/src/components/PromptList.tsx",
+        "frontend-file-summaries.txt"
       ]
     },
     {
-      "description": "Updated/added project tracking metadata indicating pending feature request and architectural notes.",
-      "reason": "BuildRequest only asked for a one-line constant change in a specific frontend file; modifying project_state.json is not requested.",
+      "description": "Theme system and settings UI (theme toggle, settings dialog, user settings persistence) plus global palette/tailwind config changes.",
+      "reason": "Not requested by REQ-1/REQ-2 and outside the stated scope; diff summary lists these additions/changes.",
       "evidence": [
-        "project_state.json"
+        "frontend-file-summaries.txt"
       ]
     },
     {
-      "description": "Modified repository-wide frontend file summary text describing numerous UI/features and behaviors unrelated to the requested URL constant change.",
-      "reason": "BuildRequest did not request updating documentation/summary files or adding unrelated feature descriptions.",
+      "description": "Play Store release planning document and compliance/SEO operational guidance file.",
+      "reason": "Not requested by the build request; appears as extra documentation work unrelated to fixing prompt loading or adding a v15 footer label.",
       "evidence": [
         "frontend-file-summaries.txt"
       ]
     }
   ],
-  "confidence": 0.74,
+  "confidence": 0.72,
   "changed_files": [
+    "backend/main.mo",
     "frontend-file-summaries.txt",
+    "frontend/src/components/Footer.tsx",
+    "frontend/src/components/PromptList.tsx",
     "frontend/src/services/viralPromptsClient.ts",
     "project_state.json"
   ]

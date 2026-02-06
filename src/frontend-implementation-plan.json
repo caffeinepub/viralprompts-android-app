@@ -1,21 +1,49 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Switch prompts JSON URL to local /data.json",
+  "title": "Stabilize prompt loading error classification and add footer version label v15",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Update the prompts JSON data source constant to use the same-origin relative path (/data.json) instead of the hardcoded viralprompts.in URL.",
+      "summary": "Fix prompt-loading pipeline so failures are correctly categorized (network/server/Cloudflare vs data format), while keeping retries and cache behavior stable.",
       "acceptanceCriteria": [
-        "`frontend/src/services/viralPromptsClient.ts` defines `DATA_URL` as `'/data.json'`.",
-        "No remaining references in the frontend code to the hardcoded URL `https://viralprompts.in/data.json`.",
-        "When `fetchViralPrompts()` is used, it requests `/data.json` from the same origin (relative URL)."
+        "When https://viralprompts.in/data.json returns valid JSON in the supported shape, prompts load successfully without any error banner.",
+        "If the upstream response is HTML/Cloudflare/error content, the frontend categorizes it as a Cloudflare/server/network failure (not a “Data format error”) and shows the existing user-friendly guidance.",
+        "The backend does not overwrite its last-known-good cached response with an invalid (non-JSON / HTML / blocked) response, so a temporary upstream block does not permanently break subsequent loads.",
+        "Retry and “Clear cache & retry” actions still work and do not crash the UI.",
+        "All user-facing error strings remain in English."
       ],
       "file_operations": [
         {
           "path": "frontend/src/services/viralPromptsClient.ts",
           "operation": "modify",
-          "description": "Change `const DATA_URL = 'https://viralprompts.in/data.json';` to `const DATA_URL = '/data.json';` and ensure no other occurrences of the hardcoded `https://viralprompts.in/data.json` string remain in this file."
+          "description": "Harden upstream response classification before JSON parsing: reliably detect HTML/error-page responses (including non-Cloudflare-branded HTML) and throw a FetchError categorized as cloudflare/server/network (not parse/validation), while preserving existing behavior for genuine JSON parse/validation failures."
+        },
+        {
+          "path": "frontend/src/hooks/useViralPrompts.ts",
+          "operation": "modify",
+          "description": "Ensure cache + retry flows remain stable: keep caching restricted to successful validated loads only, and adjust query/refetch behavior if needed so transient fetch failures continue to show last-known-good cached data without overwriting or crashing during Retry / Clear cache & retry."
+        },
+        {
+          "path": "frontend/src/components/PromptList.tsx",
+          "operation": "modify",
+          "description": "Align user-facing error messaging with the updated FetchError categorization so HTML/blocked upstream content is presented as Cloudflare/server/network failure guidance (and not as “Data format error”), keeping all error strings in English."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Display an always-visible, unobtrusive footer version label showing “v15” across all app states.",
+      "acceptanceCriteria": [
+        "The footer renders a version label that includes “v15” on every page/state of the app (list view and detail view).",
+        "The version label is visually unobtrusive and does not break the existing footer layout on mobile or desktop.",
+        "The version text is not conditional on network state; it always displays."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/Footer.tsx",
+          "operation": "modify",
+          "description": "Add a small, unobtrusive version label displaying the exact string “v15” within the existing footer layout, ensuring it remains visible in all app states and responsive on mobile/desktop."
         }
       ]
     }

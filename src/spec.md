@@ -1,10 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Use a same-origin local `/data.json` path as the frontend source for viral prompts data.
+**Goal:** Fix prompt-loading failures (network/Cloudflare vs data-format issues) without breaking cached prompts, and display an always-visible footer version label “v15”.
 
 **Planned changes:**
-- Update `frontend/src/services/viralPromptsClient.ts` to change `DATA_URL` from `https://viralprompts.in/data.json` to `'/data.json'`.
-- Remove any remaining frontend references to the hardcoded `https://viralprompts.in/data.json` URL.
+- Deep-check and harden the prompt-loading pipeline across backend fetch + frontend handling to correctly distinguish network/Cloudflare/server failures from true JSON data validation errors.
+- Ensure the backend preserves the last-known-good cached prompts and does not overwrite cache when upstream returns invalid/non-JSON/HTML/blocked content.
+- Keep retry and “Clear cache & retry” flows working without UI crashes, and keep all user-facing error strings in English.
+- Add an unobtrusive footer version label that always displays “v15” across all app states (list and detail views) on mobile and desktop.
 
-**User-visible outcome:** The app loads prompt data from `/data.json` on the same origin instead of fetching it from `viralprompts.in`.
+**User-visible outcome:** Prompts reliably load when the upstream JSON is valid; when the upstream is blocked/returns HTML or network fails, users see the correct existing guidance and can retry/clear-cache without the app getting stuck, and the footer always shows “v15”.
